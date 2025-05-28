@@ -46,12 +46,10 @@ void MyGame::Initialize()
 	ModelManager::GetInstance()->LoadModel("plane.obj");
 	object3d2->SetModel("plane.obj");
 
-	ParticleManager::GetInstance()->CreateParticleGroup("example", "resources/circle.png", "plane.obj");
+	ParticleManager::GetInstance()->CreateParticleGroup("example", "resources/circle2.png", "plane.obj");
 	particle.transform.translate = { 0.0f, 0.0f, 0.0f };
 	particleGroup.particles.push_back(particle);
 	particleGroups["example"] = particleGroup;
-
-	ParticleManager::GetInstance()->CreateParticleGroup("primitive", "resources/circle2.png", "plane.obj");
 
 
 #pragma endregion
