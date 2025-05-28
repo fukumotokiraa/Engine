@@ -51,6 +51,9 @@ void MyGame::Initialize()
 	particleGroup.particles.push_back(particle);
 	particleGroups["example"] = particleGroup;
 
+	ParticleManager::GetInstance()->CreateParticleGroup("primitive", "resources/circle2.png", "plane.obj");
+
+
 #pragma endregion
 
 }
