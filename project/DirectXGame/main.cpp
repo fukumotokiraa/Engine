@@ -1,4 +1,4 @@
-#include "MyGame.h"
+#include "MyGame/MyGame.h"
 
 #pragma comment(lib,"dxcompiler.lib")
 

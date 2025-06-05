@@ -5,6 +5,8 @@
 #include "Object3d.h"
 #include "ParticleEmitter.h"
 
+#include "GameScene/GameScene.h"
+
 
 class MyGame : public Framework
 {
@@ -34,6 +36,7 @@ private:
 	Particle particle;
 	float emissionInterval = 1.0f;
 	ParticleEmitter particleEmitter;
+	GameScene* gameScene = nullptr;
 
 	bool isSprite = false;
 	bool isModel = false;

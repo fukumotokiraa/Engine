@@ -53,6 +53,9 @@ void MyGame::Initialize()
 
 #pragma endregion
 
+	gameScene = new GameScene();
+	gameScene->Initialize();
+
 }
 
 void MyGame::Finalize()
@@ -76,6 +79,9 @@ void MyGame::Finalize()
 
 
 #pragma endregion
+
+	gameScene->Finalize();
+	delete gameScene;
 
 	Framework::Finalize();
 }
@@ -112,6 +118,8 @@ void MyGame::Update()
 	particleEmitter.Update();
 
 #pragma endregion
+
+	gameScene->Update();
 
 	Framework::Update();
 
@@ -206,6 +214,8 @@ void MyGame::Draw()
 	ParticleManager::GetInstance()->Draw();
 
 #pragma endregion
+
+	gameScene->Draw();
 
 #pragma region ImGuiDraw
 	imguiManager->Draw();
