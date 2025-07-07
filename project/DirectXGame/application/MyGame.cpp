@@ -37,8 +37,8 @@ void MyGame::Initialize()
 	model = new Model();
 	object3d = new Object3d();
 	object3d->Initialize(object3dCommon, model);
-	ModelManager::GetInstance()->LoadModel("axis.obj");
-	object3d->SetModel("axis.obj");
+	ModelManager::GetInstance()->LoadModel("AnimatedCube.gltf");
+	object3d->SetModel("AnimatedCube.gltf");
 
 	model2 = new Model();
 	object3d2 = new Object3d();

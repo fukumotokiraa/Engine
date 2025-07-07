@@ -1,7 +1,4 @@
 #include "Object3d.h"
-
-
-
 #include "Calculation.h"
 #include "Object3dCommon.h"
 
@@ -29,8 +26,8 @@ void Object3d::Update()
 	}else {
 		worldViewProjectionMatrix = worldMatrix;
 	}
-	transformationMatrixData->WVP = worldViewProjectionMatrix;
-	transformationMatrixData->World = worldMatrix;
+	transformationMatrixData->WVP = model->GetModelData()->rootNode.localMatrix * worldMatrix * worldViewProjectionMatrix;
+	transformationMatrixData->World = model->GetModelData()->rootNode.localMatrix * worldMatrix;
 
 }
 
