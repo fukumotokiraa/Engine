@@ -2,7 +2,15 @@
 #include "ModelCommon.h"
 #include "TextureManager.h"
 #include "Calculation.h"
+#include "assimp/Importer.hpp"
+#include "assimp/scene.h"
+#include "assimp/postprocess.h"
 
+struct Node {
+	Matrix4x4 localMatrix;
+	std::string name;
+	std::vector<Node> children;
+};
 struct VertexData {
 	Vector4 position;
 	Vector2 texcoord;
@@ -15,6 +23,7 @@ struct MaterialData {
 struct ModelData {
 	std::vector<VertexData> vertices;
 	MaterialData material;
+	Node rootNode;
 };
 struct Material {
 	Vector4 color;
@@ -33,11 +42,13 @@ public:
 	//.mtlファイルの読み込み
 	static MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename);
 	//.objファイルの読み込み
-	static ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
+	static ModelData LoadModelFile(const std::string& directoryPath, const std::string& filename);
 
 	ModelData* GetModelData() {return &modelData_;}
 
 	D3D12_VERTEX_BUFFER_VIEW* GetVertexBufferView() { return &vertexBufferView; }
+
+	static Node ReadNode(aiNode* node);
 
 private:
 	//ModelCommonのポインタ
