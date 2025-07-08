@@ -309,6 +309,149 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 	};
 }
 
+Vector3 Lerp(const Vector3& start, const Vector3& end, float t)
+{
+	return {
+	start.x + (end.x - start.x) * t,
+	start.y + (end.y - start.y) * t,
+	start.z + (end.z - start.z) * t
+	};
+}
+
+// ノルム（長さ）
+float Length(const Quaternion& q) {
+	return std::sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);
+}
+
+// 正規化
+Quaternion Normalize(const Quaternion& q) {
+	float len = Length(q);
+	if (len == 0.0f) return { 1, 0, 0, 0 }; // 単位クォータニオン
+	return {
+		q.w / len,
+		q.x / len,
+		q.y / len,
+		q.z / len
+	};
+}
+
+// 内積
+float Dot(const Quaternion& a, const Quaternion& b) {
+	return a.w * b.w + a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+// 補間（線形補間）
+Quaternion Lerp(const Quaternion& a, const Quaternion& b, float t) {
+	return Normalize({
+		a.w * (1.0f - t) + b.w * t,
+		a.x * (1.0f - t) + b.x * t,
+		a.y * (1.0f - t) + b.y * t,
+		a.z * (1.0f - t) + b.z * t
+		});
+}
+
+Quaternion Slerp(const Quaternion& a, const Quaternion& b, float t) {
+	Quaternion q1 = Normalize(a);
+	Quaternion q2 = Normalize(b);
+
+	float dot = Dot(q1, q2);
+
+	// クォータニオンの反転対応（同一回転だが大きく回り込むことを防ぐ）
+	if (dot < 0.0f) {
+		q2.w = -q2.w;
+		q2.x = -q2.x;
+		q2.y = -q2.y;
+		q2.z = -q2.z;
+		dot = -dot;
+	}
+
+	// 小さな角度の場合はLerpで近似
+	if (dot > 0.9995f) {
+		return Lerp(q1, q2, t);
+	}
+
+	float theta0 = std::acos(dot);     // 初期角度
+	float theta = theta0 * t;          // 補間後の角度
+
+	float sinTheta = std::sin(theta);
+	float sinTheta0 = std::sin(theta0);
+
+	float s0 = std::cos(theta) - dot * sinTheta / sinTheta0;
+	float s1 = sinTheta / sinTheta0;
+
+	return {
+		q1.w * s0 + q2.w * s1,
+		q1.x * s0 + q2.x * s1,
+		q1.y * s0 + q2.y * s1,
+		q1.z * s0 + q2.z * s1
+	};
+}
+
+Matrix4x4 QuaternionToMatrix(const Quaternion& q) {
+	Matrix4x4 result{};
+
+	float ww = q.w * q.w;
+	float xx = q.x * q.x;
+	float yy = q.y * q.y;
+	float zz = q.z * q.z;
+
+	float wx = q.w * q.x;
+	float wy = q.w * q.y;
+	float wz = q.w * q.z;
+	float xy = q.x * q.y;
+	float xz = q.x * q.z;
+	float yz = q.y * q.z;
+
+	result.m[0][0] = ww + xx - yy - zz;
+	result.m[0][1] = 2.0f * (xy - wz);
+	result.m[0][2] = 2.0f * (xz + wy);
+	result.m[0][3] = 0.0f;
+
+	result.m[1][0] = 2.0f * (xy + wz);
+	result.m[1][1] = ww - xx + yy - zz;
+	result.m[1][2] = 2.0f * (yz - wx);
+	result.m[1][3] = 0.0f;
+
+	result.m[2][0] = 2.0f * (xz - wy);
+	result.m[2][1] = 2.0f * (yz + wx);
+	result.m[2][2] = ww - xx - yy + zz;
+	result.m[2][3] = 0.0f;
+
+	result.m[3][0] = 0.0f;
+	result.m[3][1] = 0.0f;
+	result.m[3][2] = 0.0f;
+	result.m[3][3] = 1.0f;
+
+	return result;
+}
+
+Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Quaternion& rotate, const Vector3& translate) {
+	Matrix4x4 result = QuaternionToMatrix(rotate);
+
+	// スケーリング適用
+	result.m[0][0] *= scale.x;
+	result.m[0][1] *= scale.x;
+	result.m[0][2] *= scale.x;
+
+	result.m[1][0] *= scale.y;
+	result.m[1][1] *= scale.y;
+	result.m[1][2] *= scale.y;
+
+	result.m[2][0] *= scale.z;
+	result.m[2][1] *= scale.z;
+	result.m[2][2] *= scale.z;
+
+	// 平行移動適用
+	result.m[3][0] = translate.x;
+	result.m[3][1] = translate.y;
+	result.m[3][2] = translate.z;
+	result.m[3][3] = 1.0f;
+
+	return result;
+}
+
+
+
 //MyVector3& MyVector3::operator*=(float& s) { x *= s; y *= s; return *this; }
 //
 //MyVector3& MyVector3::operator-=(const Vector3& v) { x -= v.x; y -= v.y; z -= v.z; return *this; }

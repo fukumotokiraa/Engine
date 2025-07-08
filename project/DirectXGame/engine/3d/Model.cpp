@@ -160,3 +160,5 @@ Node Model::ReadNode(aiNode* node)
 	}
 	return result;
 }
+
+

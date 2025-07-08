@@ -1,4 +1,6 @@
 #pragma once
+#include <map>
+
 #include "ModelCommon.h"
 #include "TextureManager.h"
 #include "Calculation.h"
@@ -32,6 +34,7 @@ struct Material {
 	Matrix4x4 uvTransform;
 };
 
+
 class Model
 {
 public:
@@ -50,6 +53,8 @@ public:
 
 	static Node ReadNode(aiNode* node);
 
+
+
 private:
 	//ModelCommonのポインタ
 	ModelCommon* modelCommon_;
@@ -67,6 +72,8 @@ private:
 	Material* materialData = nullptr;
 
 	uint32_t instanceCount = 10;
+
+	ModelData model = LoadModelFile("./resources/", "AnimatedCube.gltf");
 
 };
 

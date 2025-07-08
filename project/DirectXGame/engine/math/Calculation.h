@@ -22,6 +22,13 @@ struct AABB {
 	Vector3 max;
 };
 
+struct Quaternion {
+	float x;
+	float y;
+	float z;
+	float w;
+};
+
 Vector3 Add(const Vector3& v1, const Vector3& v2);
 
 Vector3 Subtract(const Vector3& v1, const Vector3& v2);
@@ -93,6 +100,20 @@ Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip
 Matrix4x4 MakeIdentity4x4();
 
 Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float bottom, float nearClip, float farClip);
+
+float Length(const Quaternion& q);
+
+Quaternion Normalize(const Quaternion& q);
+
+float Dot(const Quaternion& a, const Quaternion& b);
+
+// 線形補間関数  
+Vector3 Lerp(const Vector3& start, const Vector3& end, float t);
+Quaternion Slerp(const Quaternion& a, const Quaternion& b, float t);
+
+Matrix4x4 QuaternionToMatrix(const Quaternion& q);
+
+Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Quaternion& rotate, const Vector3& translate);
 
 class MyVector3 {
 public:

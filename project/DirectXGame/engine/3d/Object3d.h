@@ -21,6 +21,24 @@ struct DirectionalLight {
 	Vector3 direction;
 	float intensity;
 };
+struct KeyframeVector3 {
+	Vector3 value;
+	float time;
+};
+struct KeyframeQuaternion {
+	Quaternion value;
+	float time;
+};
+struct NodeAnimation {
+	std::vector<KeyframeVector3> translate;
+	std::vector<KeyframeQuaternion> rotate;
+	std::vector<KeyframeVector3> scale;
+};
+struct Animation {
+	float duration;
+	std::map<std::string, NodeAnimation> nodeAnimations;
+};
+
 //3Dオブジェクト
 class Object3d
 {
@@ -46,6 +64,12 @@ public:
 
 	Transform& GetTransform() { return transform_; }
 
+	Animation LoadAnimationFile(const std::string& directoryPath, const std::string& filename);
+
+	//Vector3用
+	Vector3 CalculateValue(const std::vector<KeyframeVector3>& keyframes, float time);
+	//Quaternion用
+	Quaternion CalculateValue(const std::vector<KeyframeQuaternion>& keyframes, float time);
 
 private:
 	Object3dCommon* object3dCommon_ = nullptr;
@@ -65,5 +89,9 @@ private:
 	DirectionalLight* directionalLightData = nullptr;
 
 	Transform transform_;
+
+	float animationTime_ = 0.0f;
+
+	Animation animation = LoadAnimationFile("./resources", "AnimatedCube.gltf");
 };
 
