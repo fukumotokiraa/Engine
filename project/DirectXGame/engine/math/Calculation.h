@@ -11,22 +11,28 @@
 #include"Vector4.h"
 #include"Matrix4x4.h"
 
-struct Transform {
+struct Quaternion {
+	float x;
+	float y;
+	float z;
+	float w;
+};
+
+struct EulerTransform {
 	Vector3 scale;
 	Vector3 rotate;
+	Vector3 translate;
+};
+
+struct QuaternionTransform {
+	Vector3 scale;
+	Quaternion rotate;
 	Vector3 translate;
 };
 
 struct AABB {
 	Vector3 min;
 	Vector3 max;
-};
-
-struct Quaternion {
-	float x;
-	float y;
-	float z;
-	float w;
 };
 
 Vector3 Add(const Vector3& v1, const Vector3& v2);

@@ -9,6 +9,7 @@
 #include "assimp/postprocess.h"
 
 struct Node {
+	QuaternionTransform transform;
 	Matrix4x4 localMatrix;
 	std::string name;
 	std::vector<Node> children;
@@ -33,12 +34,28 @@ struct Material {
 	float padding[3];
 	Matrix4x4 uvTransform;
 };
+struct Joint {
+	QuaternionTransform transform;
+	Matrix4x4 localMatrix;
+	Matrix4x4 skeletonSpaceMatrix;
+	std::string name;
+	std::vector<int32_t> children;
+	int32_t index;
+	std::optional<int32_t> parent;
+};
+struct Skeleton {
+	int32_t root;
+	std::map<std::string, int32_t> jointMap;
+	std::vector<Joint> joints;
+};
 
 
 class Model
 {
 public:
 	void Initialize(ModelCommon* modelCommon, const std::string& directorypath, const std::string& filename);
+
+	void Update(Skeleton& skeleton);
 
 	void Draw();
 
@@ -53,7 +70,9 @@ public:
 
 	static Node ReadNode(aiNode* node);
 
+	Skeleton CreateSkeleton(const Node& rootNode);
 
+	int32_t CreateJoint(const Node& node, const std::optional<int32_t>& parent, std::vector<Joint>& joints);
 
 private:
 	//ModelCommonのポインタ

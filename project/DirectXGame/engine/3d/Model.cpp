@@ -38,6 +38,19 @@ void Model::Initialize(ModelCommon* modelCommon, const std::string& directorypat
 	vertexBufferView.StrideInBytes = sizeof(VertexData);//１頂点あたりのサイズ
 }
 
+void Model::Update(Skeleton& skeleton)
+{
+	for (Joint& joint : skeleton.joints) {
+		joint.localMatrix = MakeAffineMatrix(joint.transform.scale, joint.transform.rotate, joint.transform.translate);
+		if (joint.parent) {
+			joint.skeletonSpaceMatrix = joint.localMatrix * skeleton.joints[*joint.parent].skeletonSpaceMatrix;
+		}
+		else {
+			joint.skeletonSpaceMatrix = joint.localMatrix;
+		}
+	}
+}
+
 void Model::Draw()
 {
 
@@ -134,31 +147,70 @@ ModelData Model::LoadModelFile(const std::string& directoryPath, const std::stri
 Node Model::ReadNode(aiNode* node)
 {
 	Node result;
-	aiMatrix4x4 aiLocalMatrix = node->mTransformation; //nodeのlocalMatrixを取得
-	aiLocalMatrix.Transpose(); //列ベクトル形式を行ベクトルに転置
-	result.localMatrix.m[0][0] = aiLocalMatrix[0][0];
-	result.localMatrix.m[0][1] = aiLocalMatrix[0][1];
-	result.localMatrix.m[0][2] = aiLocalMatrix[0][2];
-	result.localMatrix.m[0][3] = aiLocalMatrix[0][3];
-	result.localMatrix.m[1][0] = aiLocalMatrix[1][0];
-	result.localMatrix.m[1][1] = aiLocalMatrix[1][1];
-	result.localMatrix.m[1][2] = aiLocalMatrix[1][2];
-	result.localMatrix.m[1][3] = aiLocalMatrix[1][3];
-	result.localMatrix.m[2][0] = aiLocalMatrix[2][0];
-	result.localMatrix.m[2][1] = aiLocalMatrix[2][1];
-	result.localMatrix.m[2][2] = aiLocalMatrix[2][2];
-	result.localMatrix.m[2][3] = aiLocalMatrix[2][3];
-	result.localMatrix.m[3][0] = aiLocalMatrix[3][0];
-	result.localMatrix.m[3][1] = aiLocalMatrix[3][1];
-	result.localMatrix.m[3][2] = aiLocalMatrix[3][2];
-	result.localMatrix.m[3][3] = aiLocalMatrix[3][3];
+	aiVector3D scale, translate;
+	aiQuaternion rotate;
+	node->mTransformation.Decompose(scale, rotate, translate);
+	result.transform.scale = { scale.x, scale.y, scale.z };
+	result.transform.rotate = { rotate.x, -rotate.y, -rotate.z, rotate.w };
+	result.transform.translate = { -translate.x, translate.y, translate.z };
+	result.localMatrix = MakeAffineMatrix(result.transform.scale, result.transform.rotate, result.transform.translate);
+
+	//aiMatrix4x4 aiLocalMatrix = node->mTransformation; //nodeのlocalMatrixを取得
+	//aiLocalMatrix.Transpose(); //列ベクトル形式を行ベクトルに転置
+	//result.localMatrix.m[0][0] = aiLocalMatrix[0][0];
+	//result.localMatrix.m[0][1] = aiLocalMatrix[0][1];
+	//result.localMatrix.m[0][2] = aiLocalMatrix[0][2];
+	//result.localMatrix.m[0][3] = aiLocalMatrix[0][3];
+	//result.localMatrix.m[1][0] = aiLocalMatrix[1][0];
+	//result.localMatrix.m[1][1] = aiLocalMatrix[1][1];
+	//result.localMatrix.m[1][2] = aiLocalMatrix[1][2];
+	//result.localMatrix.m[1][3] = aiLocalMatrix[1][3];
+	//result.localMatrix.m[2][0] = aiLocalMatrix[2][0];
+	//result.localMatrix.m[2][1] = aiLocalMatrix[2][1];
+	//result.localMatrix.m[2][2] = aiLocalMatrix[2][2];
+	//result.localMatrix.m[2][3] = aiLocalMatrix[2][3];
+	//result.localMatrix.m[3][0] = aiLocalMatrix[3][0];
+	//result.localMatrix.m[3][1] = aiLocalMatrix[3][1];
+	//result.localMatrix.m[3][2] = aiLocalMatrix[3][2];
+	//result.localMatrix.m[3][3] = aiLocalMatrix[3][3];
+
 	result.name = node->mName.C_Str(); //Node名を格納
 	result.children.resize(node->mNumChildren); //子供の数だけ確保
 	for (uint32_t childIndex = 0; childIndex < node->mNumChildren; ++childIndex) {
 		//再起的に読んで階層構造を作っていく
 		result.children[childIndex] = ReadNode(node->mChildren[childIndex]);
 	}
+
 	return result;
+}
+
+Skeleton Model::CreateSkeleton(const Node& rootNode)
+{
+	Skeleton skeleton;
+	skeleton.root = CreateJoint(rootNode, {}, skeleton.joints);
+
+	for (const Joint& joint : skeleton.joints) {
+		skeleton.jointMap.emplace(joint.name, joint.index);
+	}
+
+	return skeleton;
+}
+
+int32_t Model::CreateJoint(const Node& node, const std::optional<int32_t>& parent, std::vector<Joint>& joints)
+{
+	Joint joint;
+	joint.name = node.name;
+	joint.localMatrix = node.localMatrix;
+	joint.skeletonSpaceMatrix = MakeIdentity4x4();
+	joint.transform = node.transform;
+	joint.index = int32_t(joints.size());
+	joint.parent = parent;
+	joints.push_back(joint);
+	for (const Node& child : node.children) {
+		int32_t childIndex = CreateJoint(child, joint.index, joints);
+		joints[joint.index].children.push_back(childIndex);
+	}
+	return joint.index;
 }
 
 

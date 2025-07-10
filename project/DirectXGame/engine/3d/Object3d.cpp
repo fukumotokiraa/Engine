@@ -24,6 +24,8 @@ void Object3d::Update()
 	Vector3 scale = CalculateValue(rootNodeAnimation.scale, animationTime_);
 	Matrix4x4 localMatrix = MakeAffineMatrix(scale, rotate, translate);
 
+	//model->Update();
+
 	// 行列の更新
 	//transform.rotate.y += 0.03f;
 	Matrix4x4 worldMatrix = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
@@ -36,7 +38,11 @@ void Object3d::Update()
 	}
 	//transformationMatrixData->WVP = model->GetModelData()->rootNode.localMatrix * worldMatrix * worldViewProjectionMatrix;
 	//transformationMatrixData->World = model->GetModelData()->rootNode.localMatrix * worldMatrix;
-	transformationMatrixData->WVP = localMatrix * worldMatrix * worldViewProjectionMatrix;
+
+	//transformationMatrixData->WVP = localMatrix * worldMatrix * worldViewProjectionMatrix;
+	//transformationMatrixData->World = localMatrix * worldMatrix;
+
+	transformationMatrixData->WVP = worldViewProjectionMatrix;
 	transformationMatrixData->World = localMatrix * worldMatrix;
 
 }

@@ -62,7 +62,7 @@ public:
 
 	void SetCamera(Camera* camera) { camera_ = camera; }
 
-	Transform& GetTransform() { return transform_; }
+	EulerTransform& GetTransform() { return transform_; }
 
 	Animation LoadAnimationFile(const std::string& directoryPath, const std::string& filename);
 
@@ -88,10 +88,10 @@ private:
 	//バッファリソース内のデータを指すポインタ
 	DirectionalLight* directionalLightData = nullptr;
 
-	Transform transform_;
+	EulerTransform transform_;
 
 	float animationTime_ = 0.0f;
 
-	Animation animation = LoadAnimationFile("./resources", "AnimatedCube.gltf");
+	Animation animation = LoadAnimationFile("./resources", "walk.gltf");
 };
 

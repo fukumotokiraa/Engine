@@ -12,7 +12,7 @@
 #include "TextureManager.h"
 
 struct Particle {
-	Transform transform;
+	EulerTransform transform;
 	Vector3 velocity;
 	Vector4 color;
 	float lifeTime;
@@ -113,7 +113,7 @@ private:
 
 	D3D12_VERTEX_BUFFER_VIEW* vertexBufferView;
 
-	Transform cameraTransform_;
+	EulerTransform cameraTransform_;
 
 	std::mt19937 randomEngine_;
 
