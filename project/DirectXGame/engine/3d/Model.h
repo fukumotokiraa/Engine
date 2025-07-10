@@ -48,6 +48,23 @@ struct Skeleton {
 	std::map<std::string, int32_t> jointMap;
 	std::vector<Joint> joints;
 };
+struct KeyframeVector3 {
+	Vector3 value;
+	float time;
+};
+struct KeyframeQuaternion {
+	Quaternion value;
+	float time;
+};
+struct NodeAnimation {
+	std::vector<KeyframeVector3> translate;
+	std::vector<KeyframeQuaternion> rotate;
+	std::vector<KeyframeVector3> scale;
+};
+struct Animation {
+	float duration;
+	std::map<std::string, NodeAnimation> nodeAnimations;
+};
 
 
 class Model
@@ -66,6 +83,8 @@ public:
 
 	ModelData* GetModelData() {return &modelData_;}
 
+	Skeleton* GetSkeleton() { return &skeleton_; }
+
 	D3D12_VERTEX_BUFFER_VIEW* GetVertexBufferView() { return &vertexBufferView; }
 
 	static Node ReadNode(aiNode* node);
@@ -74,11 +93,19 @@ public:
 
 	int32_t CreateJoint(const Node& node, const std::optional<int32_t>& parent, std::vector<Joint>& joints);
 
+	void ApplyAnimation(Skeleton& skeleton, const Animation& animation, float animationTime);
+
+	//Vector3用
+	Vector3 CalculateValue(const std::vector<KeyframeVector3>& keyframes, float time);
+	//Quaternion用
+	Quaternion CalculateValue(const std::vector<KeyframeQuaternion>& keyframes, float time);
+
 private:
 	//ModelCommonのポインタ
 	ModelCommon* modelCommon_;
 	//Objファイルのデータ
 	ModelData modelData_;
+	Skeleton skeleton_;
 	//VertexResource
 	Microsoft::WRL::ComPtr< ID3D12Resource> vertexResource = nullptr;
 	//VertexBufferView

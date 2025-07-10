@@ -19,12 +19,13 @@ void Object3d::Update()
 	animationTime_ += 1.0f / 60.0f;
 	animationTime_ = std::fmod(animationTime_, animation.duration);
 	NodeAnimation& rootNodeAnimation = animation.nodeAnimations[model->GetModelData()->rootNode.name];
-	Vector3 translate = CalculateValue(rootNodeAnimation.translate, animationTime_);
-	Quaternion rotate = CalculateValue(rootNodeAnimation.rotate, animationTime_);
-	Vector3 scale = CalculateValue(rootNodeAnimation.scale, animationTime_);
+    Vector3 translate = model->CalculateValue(rootNodeAnimation.translate, animationTime_);
+	Quaternion rotate = model->CalculateValue(rootNodeAnimation.rotate, animationTime_);
+	Vector3 scale = model->CalculateValue(rootNodeAnimation.scale, animationTime_);
 	Matrix4x4 localMatrix = MakeAffineMatrix(scale, rotate, translate);
 
-	//model->Update();
+	model->ApplyAnimation(*model->GetSkeleton(), animation, animationTime_);
+    model->Update(*model->GetSkeleton());
 
 	// 行列の更新
 	//transform.rotate.y += 0.03f;
@@ -125,40 +126,4 @@ Animation Object3d::LoadAnimationFile(const std::string& directoryPath, const st
 	return animation;
 }
 
-Vector3 Object3d::CalculateValue(const std::vector<KeyframeVector3>& keyframes, float time)
-{
-	//assert(!keyframes.empty());
-	if (keyframes.empty()) {
-		return { 0.0f, 0.0f, 0.0f };
-	}
-	if (keyframes.size() == 1 || time <= keyframes[0].time) {
-		return keyframes[0].value;
-	}
-	for(size_t index = 0; index< keyframes.size() - 1; ++index) {
-		size_t nextIndex = index + 1;
-		if (keyframes[index].time <= time && time <= keyframes[nextIndex].time) {
-			float t = (time - keyframes[index].time) / (keyframes[nextIndex].time - keyframes[index].time);
-			return Lerp(keyframes[index].value, keyframes[nextIndex].value, t);
-		}
-	}
-	return (*keyframes.rbegin()).value;
-}
 
-Quaternion Object3d::CalculateValue(const std::vector<KeyframeQuaternion>& keyframes, float time)
-{
-	//assert(!keyframes.empty());
-	if (keyframes.empty()) {
-		return { 0.0f, 0.0f, 0.0f, 1.0f };
-	}
-	if (keyframes.size() == 1 || time <= keyframes[0].time) {
-		return keyframes[0].value;
-	}
-	for (size_t index = 0; index < keyframes.size() - 1; ++index) {
-		size_t nextIndex = index + 1;
-		if (keyframes[index].time <= time && time <= keyframes[nextIndex].time) {
-			float t = (time - keyframes[index].time) / (keyframes[nextIndex].time - keyframes[index].time);
-			return Slerp(keyframes[index].value, keyframes[nextIndex].value, t);
-		}
-	}
-	return (*keyframes.rbegin()).value;
-}

@@ -12,6 +12,7 @@ void Model::Initialize(ModelCommon* modelCommon, const std::string& directorypat
 	modelCommon_ = modelCommon;
 	//モデル読み込み
 	modelData_ = LoadModelFile(directorypath, filename);
+	skeleton_ = CreateSkeleton(modelData_.rootNode);
 	//頂点データの初期化
 	vertexResource = modelCommon_->GetDXCommon()->CreateBufferResource(sizeof(VertexData) * modelData_.vertices.size());
 	VertexData* vertexData = nullptr;
@@ -211,6 +212,56 @@ int32_t Model::CreateJoint(const Node& node, const std::optional<int32_t>& paren
 		joints[joint.index].children.push_back(childIndex);
 	}
 	return joint.index;
+}
+
+void Model::ApplyAnimation(Skeleton& skeleton, const Animation& animation, float animationTime)
+{
+	for(Joint& joint : skeleton.joints) {
+		if(auto it = animation.nodeAnimations.find(joint.name); it != animation.nodeAnimations.end()) {
+			const NodeAnimation& rootNoodAnimation = (*it).second;
+			joint.transform.translate = CalculateValue(rootNoodAnimation.translate, animationTime);
+			joint.transform.rotate = CalculateValue(rootNoodAnimation.rotate, animationTime);
+			joint.transform.scale = CalculateValue(rootNoodAnimation.scale, animationTime);
+		}
+	}
+}
+
+Vector3 Model::CalculateValue(const std::vector<KeyframeVector3>& keyframes, float time)
+{
+	//assert(!keyframes.empty());
+	if (keyframes.empty()) {
+		return { 0.0f, 0.0f, 0.0f };
+	}
+	if (keyframes.size() == 1 || time <= keyframes[0].time) {
+		return keyframes[0].value;
+	}
+	for (size_t index = 0; index < keyframes.size() - 1; ++index) {
+		size_t nextIndex = index + 1;
+		if (keyframes[index].time <= time && time <= keyframes[nextIndex].time) {
+			float t = (time - keyframes[index].time) / (keyframes[nextIndex].time - keyframes[index].time);
+			return Lerp(keyframes[index].value, keyframes[nextIndex].value, t);
+		}
+	}
+	return (*keyframes.rbegin()).value;
+}
+
+Quaternion Model::CalculateValue(const std::vector<KeyframeQuaternion>& keyframes, float time)
+{
+	//assert(!keyframes.empty());
+	if (keyframes.empty()) {
+		return { 0.0f, 0.0f, 0.0f, 1.0f };
+	}
+	if (keyframes.size() == 1 || time <= keyframes[0].time) {
+		return keyframes[0].value;
+	}
+	for (size_t index = 0; index < keyframes.size() - 1; ++index) {
+		size_t nextIndex = index + 1;
+		if (keyframes[index].time <= time && time <= keyframes[nextIndex].time) {
+			float t = (time - keyframes[index].time) / (keyframes[nextIndex].time - keyframes[index].time);
+			return Slerp(keyframes[index].value, keyframes[nextIndex].value, t);
+		}
+	}
+	return (*keyframes.rbegin()).value;
 }
 
 
